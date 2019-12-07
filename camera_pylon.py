@@ -51,8 +51,22 @@ class CameraPylon:
     def setExposureTime(self, exposure_us=10000):
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
-        self.camera.ExposureTimeRaw.SetValue(exposure_us)
+        if exposure_us == 0:
+            self.camera.ExposureAuto.SetValue('Continuous')
+        else:
+            self.camera.ExposureAuto.SetValue('Off')
+            self.camera.ExposureTimeRaw.SetValue(exposure_us)
+        print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
         print('ExposureTime = {0}[us]'.format(self.camera.ExposureTimeRaw.GetValue()))
+    # Gain
+    def setGain(self, gain=1.0):
+        if gain == 0:
+            self.camera.GainAuto.SetValue('Continuous')
+        else:
+            self.camera.GainAuto.SetValue('Off')
+            self.camera.Gain.SetValue(gain)
+        print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
+        print('Gain = {0}'.format(self.camera.Gain.GetValue()))
     # Grab
     # All convert to 24-bit BGR.
     def grab(self, timeout=1000):
