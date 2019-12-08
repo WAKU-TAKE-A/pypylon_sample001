@@ -13,8 +13,6 @@ class CameraPylon:
         self.devices = self.factory.EnumerateDevices()
         if len(self.devices) == 0:
             raise Exception('no camera present.')
-        else:
-            print(self.devices[0].GetFriendlyName())
         self.converter_bgr = pylon.ImageFormatConverter()
         self.converter_bgr.OutputPixelFormat = pylon.PixelType_BGR8packed
         self.converter_bgr.OutputBitAlignment = 'MsbAligned'
@@ -33,6 +31,7 @@ class CameraPylon:
         print('--------------------')
         print('CameraPylon.__init__')
         print('--------------------')
+        print('Name = {0}'.format(self.devices[id].GetFriendlyName()))
         print('Width = {0}'.format(self.camera.Width.GetValue()))
         print('Height = {0}'.format(self.camera.Height.GetValue()))
         print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
