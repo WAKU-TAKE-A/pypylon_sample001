@@ -5,18 +5,22 @@ from pypylon import pylon
 import cv2
 
 class CameraPylon:
-    # Init
-    # When exposure_us is zero, auto exposure is enabled.
-    # When gain is zero, auto gain is enabled.
+
     def __init__(self, id=0, exposure_us=30000, gain=1.0):
+        """
+        Init
+        
+        * When exposure_us is zero, auto exposure is enabled.
+        * When gain is zero, auto gain is enabled.
+        """
         self.factory = pylon.TlFactory.GetInstance()
+        # DeviceInfo class get the number of connected cameras, camera name, etc.
         self.devices = self.factory.EnumerateDevices()
         if len(self.devices) == 0:
             raise Exception('no camera present.')
-        self.converter_bgr = pylon.ImageFormatConverter()
-        self.converter_bgr.OutputPixelFormat = pylon.PixelType_BGR8packed
-        self.converter_bgr.OutputBitAlignment = 'MsbAligned'
+        # Create a class to control the camera.
         self.camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[id]))
+        # The camera settings cannot be changed without opening.
         self.camera.Open()
         if exposure_us == 0:
             self.camera.ExposureAuto.SetValue('Continuous')
@@ -40,14 +44,24 @@ class CameraPylon:
         print('Gain = {0}'.format(self.camera.Gain.GetValue()))
         print('')
         self.camera.Close()
-    # Open
+        # Set ImageFormatConverter.
+        self.converter_bgr = pylon.ImageFormatConverter()
+        self.converter_bgr.OutputPixelFormat = pylon.PixelType_BGR8packed
+        self.converter_bgr.OutputBitAlignment = 'MsbAligned'
     def open(self):
+        """
+        Open.
+        """
         self.camera.Open()
-    # Close
     def close(self):
+        """
+        Close.
+        """
         self.camera.Close()
-    # Exposure time
     def setExposureTime(self, exposure_us=10000):
+        """
+        Set exposure time.
+        """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
         if exposure_us == 0:
@@ -57,8 +71,10 @@ class CameraPylon:
             self.camera.ExposureTimeRaw.SetValue(exposure_us)
         print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
         print('ExposureTime = {0}[us]'.format(self.camera.ExposureTimeRaw.GetValue()))
-    # Gain
     def setGain(self, gain=1.0):
+        """
+        Set gain.
+        """
         if gain == 0:
             self.camera.GainAuto.SetValue('Continuous')
         else:
@@ -66,23 +82,30 @@ class CameraPylon:
             self.camera.Gain.SetValue(gain)
         print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
         print('Gain = {0}'.format(self.camera.Gain.GetValue()))
-    # Grab
-    # All convert to 24-bit BGR.
     def grab(self, timeout=1000):
+        """
+        Grab.
+        
+        * Run StartGrabbing and StopGrabbing each time.
+        * All convert to 24-bit BGR.
+        """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
         t_start = time.time()
         self.camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
         grabResult = self.camera.RetrieveResult(timeout, pylon.TimeoutHandling_ThrowException)
-        img_conv = self.converter_bgr.Convert(grabResult)
+        rslt_conv = self.converter_bgr.Convert(grabResult)
         grabResult.Release()
         self.camera.StopGrabbing()
         proc_time = time.time() - t_start
         print('grab time : {0} ms'.format(proc_time))
-        return img_conv.GetArray()
-    # View
-    # Close with ESC.
+        return rslt_conv.GetArray()
     def view(self, delay=1):
+        """
+        View.
+        
+        * Close with ESC.
+        """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
         k = 0
