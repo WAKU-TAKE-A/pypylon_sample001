@@ -5,7 +5,6 @@ from pypylon import pylon
 import cv2
 
 class CameraPylon:
-
     def __init__(self, id=0, exposure_us=30000, gain=1.0):
         """
         Init
@@ -26,7 +25,7 @@ class CameraPylon:
             self.camera.ExposureAuto.SetValue('Continuous')
         else:
             self.camera.ExposureAuto.SetValue('Off')
-            self.camera.ExposureTimeRaw.SetValue(exposure_us)
+            self.camera.ExposureTime.SetValue(exposure_us)
         if gain == 0:
             self.camera.GainAuto.SetValue('Continuous')
         else:
@@ -39,7 +38,7 @@ class CameraPylon:
         print('Width = {0}'.format(self.camera.Width.GetValue()))
         print('Height = {0}'.format(self.camera.Height.GetValue()))
         print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
-        print('ExposureTime = {0}[us]'.format(self.camera.ExposureTimeRaw.GetValue()))
+        print('ExposureTime = {0}[us]'.format(self.camera.ExposureTime.GetValue()))
         print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
         print('Gain = {0}'.format(self.camera.Gain.GetValue()))
         print('')
@@ -68,9 +67,9 @@ class CameraPylon:
             self.camera.ExposureAuto.SetValue('Continuous')
         else:
             self.camera.ExposureAuto.SetValue('Off')
-            self.camera.ExposureTimeRaw.SetValue(exposure_us)
+            self.camera.ExposureTime.SetValue(exposure_us)
         print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
-        print('ExposureTime = {0}[us]'.format(self.camera.ExposureTimeRaw.GetValue()))
+        print('ExposureTime = {0}[us]'.format(self.camera.ExposureTime.GetValue()))
     def setGain(self, gain=1.0):
         """
         Set gain.
