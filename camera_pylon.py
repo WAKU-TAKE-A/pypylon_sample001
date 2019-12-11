@@ -41,7 +41,6 @@ class CameraPylon:
         print('ExposureTime = {0}[us]'.format(self.camera.ExposureTime.GetValue()))
         print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
         print('Gain = {0}'.format(self.camera.Gain.GetValue()))
-        print('')
         self.camera.Close()
         # Set ImageFormatConverter.
         self.converter_bgr = pylon.ImageFormatConverter()
@@ -60,6 +59,8 @@ class CameraPylon:
     def setExposureTime(self, exposure_us=10000):
         """
         Set exposure time.
+        
+        * When exposure_us is zero, auto exposure is enabled.
         """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
@@ -73,7 +74,11 @@ class CameraPylon:
     def setGain(self, gain=1.0):
         """
         Set gain.
+        
+        * When gain is zero, auto gain is enabled.
         """
+        if not self.camera.IsOpen():
+            raise Exception('camera is not open.')
         if gain == 0:
             self.camera.GainAuto.SetValue('Continuous')
         else:
