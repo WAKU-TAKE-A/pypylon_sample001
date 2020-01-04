@@ -5,7 +5,7 @@ from pypylon import pylon
 import cv2
 
 class CameraPylon:
-    def __init__(self, id=0, exposure_us=30000, gain=1.0):
+    def __init__(self, id=0, exposure_us=30000, gain=0.0):
         """
         Init
         
@@ -26,7 +26,7 @@ class CameraPylon:
         else:
             self.camera.ExposureAuto.SetValue('Off')
             self.camera.ExposureTime.SetValue(exposure_us)
-        if gain == 0:
+        if gain == -1.0:
             self.camera.GainAuto.SetValue('Continuous')
         else:
             self.camera.GainAuto.SetValue('Off')
@@ -46,6 +46,8 @@ class CameraPylon:
         self.converter_bgr = pylon.ImageFormatConverter()
         self.converter_bgr.OutputPixelFormat = pylon.PixelType_BGR8packed
         self.converter_bgr.OutputBitAlignment = 'MsbAligned'
+        # Set display magnification.
+        self.disp_mag = 50
     def open(self):
         """
         Open.
@@ -56,11 +58,12 @@ class CameraPylon:
         Close.
         """
         self.camera.Close()
-    def setExposureTime(self, exposure_us=10000):
+    def setExposureTime(self, exposure_us=10000, en_print=True):
         """
         Set exposure time.
         
         * When exposure_us is zero, auto exposure is enabled.
+        * When en_print is True, display the set value.
         """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
@@ -69,29 +72,33 @@ class CameraPylon:
         else:
             self.camera.ExposureAuto.SetValue('Off')
             self.camera.ExposureTime.SetValue(exposure_us)
-        print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
-        print('ExposureTime = {0}[us]'.format(self.camera.ExposureTime.GetValue()))
-    def setGain(self, gain=1.0):
+        if en_print:
+            print('ExposureAuto = {0}'.format(self.camera.ExposureAuto.GetValue()))
+            print('ExposureTime = {0}[us]'.format(self.camera.ExposureTime.GetValue()))
+    def setGain(self, gain=0.0, en_print=True):
         """
         Set gain.
         
-        * When gain is zero, auto gain is enabled.
+        * When gain is -1, auto gain is enabled.
+        * When en_print is True, display the set value.
         """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
-        if gain == 0:
+        if gain == -1.0:
             self.camera.GainAuto.SetValue('Continuous')
         else:
             self.camera.GainAuto.SetValue('Off')
             self.camera.Gain.SetValue(gain)
-        print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
-        print('Gain = {0}'.format(self.camera.Gain.GetValue()))
-    def grab(self, timeout=1000):
+        if en_print:
+            print('GainAuto = {0}'.format(self.camera.GainAuto.GetValue()))
+            print('Gain = {0}[dB]'.format(self.camera.Gain.GetValue()))
+    def grab(self, timeout=1000, en_print=True):
         """
         Grab.
         
         * Run StartGrabbing and StopGrabbing each time.
         * All convert to 24-bit BGR.
+        * When en_print is True, display the set value.
         """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
@@ -102,7 +109,8 @@ class CameraPylon:
         grabResult.Release()
         self.camera.StopGrabbing()
         proc_time = time.time() - t_start
-        print('grab time : {0} ms'.format(proc_time))
+        if en_print:
+            print('grab time : {0} ms'.format(proc_time))
         return rslt_conv.GetArray()
     def view(self, delay=1):
         """
@@ -114,8 +122,29 @@ class CameraPylon:
             raise Exception('camera is not open.')
         k = 0
         while k != 27:
-            img = self.grab()
-            cv2.namedWindow("img", cv2.WINDOW_KEEPRATIO | cv2.WINDOW_NORMAL)
-            cv2.imshow("img", img)
+            img = self.grab(en_print=False)
+            w = int(self.camera.Width.GetValue() * self.disp_mag / 100)
+            h = int(self.camera.Height.GetValue() * self.disp_mag / 100)
+            img_resize = cv2.resize(img, (w, h))
+            cv2.imshow("img", img_resize)
+            exp_cur = int(self.camera.ExposureTime.GetValue() / 1000)
+            exp_max = int(self.camera.AutoExposureTimeUpperLimit.GetValue() / 1000)
+            gain_cur = int(self.camera.Gain.GetValue())
+            gain_max = int(self.camera.AutoGainUpperLimit.GetValue())
+            mag_cur = int(self.disp_mag)
+            mag_max = int(200)
+            cv2.createTrackbar("Exp[ms]", "img", exp_cur, exp_max, self._changeExposure)
+            cv2.createTrackbar("Gain[dB]", "img", gain_cur, gain_max, self._changeGain)
+            cv2.createTrackbar("Mag", "img", mag_cur, mag_max, self._changeMag)
             k = cv2.waitKey(delay)
         cv2.destroyAllWindows()
+    def _changeExposure(self, val):
+        exp = cv2.getTrackbarPos("Exp[ms]", "img")
+        self.setExposureTime(exp * 1000, False)
+    def _changeGain(self, val):
+        gain = cv2.getTrackbarPos("Gain[dB]", "img")
+        self.setGain(gain, False)
+    def _changeMag(self, val):
+        mag = cv2.getTrackbarPos("Mag", "img")
+        self.disp_mag = int(mag)
+
