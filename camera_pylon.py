@@ -135,7 +135,7 @@ class CameraPylon:
             mag_max = int(200)
             cv2.createTrackbar("Exp[ms]", "img", exp_cur, exp_max, self._changeExposure)
             cv2.createTrackbar("Gain[dB]", "img", gain_cur, gain_max, self._changeGain)
-            cv2.createTrackbar("Mag", "img", mag_cur, mag_max, self._changeMag)
+            cv2.createTrackbar("Mag[%]", "img", mag_cur, mag_max, self._changeMag)
             k = cv2.waitKey(delay)
         cv2.destroyAllWindows()
     def _changeExposure(self, val):
@@ -145,6 +145,6 @@ class CameraPylon:
         gain = cv2.getTrackbarPos("Gain[dB]", "img")
         self.setGain(gain, False)
     def _changeMag(self, val):
-        mag = cv2.getTrackbarPos("Mag", "img")
+        mag = cv2.getTrackbarPos("Mag[%]", "img")
         self.disp_mag = int(mag)
 
