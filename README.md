@@ -2,12 +2,12 @@
 
 This is a sample of pypylon.
 
-Copy camera_pylon.py to the Lib folder.
+Copy wk_camera_pylon.py to the Lib folder.
 
 Try the following.
 
 ```
-from camera_pylon import *
+from wk_camera_pylon import *
 
 cam = CameraPylon()
 cam.open()
