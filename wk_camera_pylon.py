@@ -117,6 +117,7 @@ class CameraPylon:
         View.
         
         * Close with ESC.
+        * Display a track bar for changing parameters with 'p'.
         """
         if not self.camera.IsOpen():
             raise Exception('camera is not open.')
@@ -127,20 +128,21 @@ class CameraPylon:
             h = int(self.camera.Height.GetValue() * self.disp_mag / 100)
             img_resize = cv2.resize(img, (w, h))
             cv2.imshow("img", img_resize)
-            exp_cur = int(self.camera.ExposureTime.GetValue() / 1000)
-            exp_max = int(self.camera.AutoExposureTimeUpperLimit.GetValue() / 1000)
-            gain_cur = int(self.camera.Gain.GetValue())
-            gain_max = int(self.camera.AutoGainUpperLimit.GetValue())
-            mag_cur = int(self.disp_mag)
-            mag_max = int(200)
-            cv2.createTrackbar("Exp[ms]", "img", exp_cur, exp_max, self._changeExposure)
-            cv2.createTrackbar("Gain[dB]", "img", gain_cur, gain_max, self._changeGain)
-            cv2.createTrackbar("Mag[%]", "img", mag_cur, mag_max, self._changeMag)
+            if k == ord('q'):
+                exp_cur = int(self.camera.ExposureTime.GetValue())
+                exp_max = int(self.camera.AutoExposureTimeUpperLimit.GetValue())
+                gain_cur = int(self.camera.Gain.GetValue())
+                gain_max = int(self.camera.AutoGainUpperLimit.GetValue())
+                mag_cur = int(self.disp_mag)
+                mag_max = int(200)
+                cv2.createTrackbar("Exp[us]", "img", exp_cur, exp_max, self._changeExposure)
+                cv2.createTrackbar("Gain[dB]", "img", gain_cur, gain_max, self._changeGain)
+                cv2.createTrackbar("Mag[%]", "img", mag_cur, mag_max, self._changeMag)
             k = cv2.waitKey(delay)
         cv2.destroyAllWindows()
     def _changeExposure(self, val):
-        exp = cv2.getTrackbarPos("Exp[ms]", "img")
-        self.setExposureTime(exp * 1000, False)
+        exp = cv2.getTrackbarPos("Exp[us]", "img")
+        self.setExposureTime(exp, False)
     def _changeGain(self, val):
         gain = cv2.getTrackbarPos("Gain[dB]", "img")
         self.setGain(gain, False)

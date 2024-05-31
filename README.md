@@ -13,4 +13,6 @@ cam = CameraPylon()
 cam.open()
 cam.view()
 img = cam.grab()
+
+help(wk_camera_pylon)
 ```
